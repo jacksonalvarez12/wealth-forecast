@@ -99,5 +99,12 @@ export const convertEntriesToGrid = (entries: Entries): Grid => {
 		}
 	});
 
+	// Add headers
+	const headers: string[] = [''];
+	sortedEntries.forEach((entry) => {
+		headers.push(`${entry.month}/${entry.year % 100}`);
+	});
+	finalGrid.unshift(headers);
+
 	return finalGrid;
 };

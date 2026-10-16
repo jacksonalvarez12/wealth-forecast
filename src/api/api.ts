@@ -44,7 +44,7 @@ const data: Data = {
 };
 
 export const fetchData = async (): Promise<Data> => {
-	await new Promise((resolve) => setTimeout(resolve, 5000));
+	// await new Promise((resolve) => setTimeout(resolve, 5000));
 	return Promise.resolve(data);
 };
 

@@ -6,16 +6,26 @@ export const Sheet = (opts: { entries: Entries }) => {
 
 	const grid: Grid = convertEntriesToGrid(entries);
 
-	let gridStrings: string[] = [];
-	grid.forEach((row) => {
-		gridStrings.push(`${row.map((item) => item || 'empty').join(' | ')}`);
-	});
-
 	return (
 		<div>
-			{gridStrings.map((gridString) => (
-				<p>{gridString}</p>
-			))}
+			<table>
+				<thead>
+					<tr>
+						{grid[0].map((item, index) => (
+							<th key={index}>{item}</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{grid.slice(1).map((row, rowIndex) => (
+						<tr key={rowIndex}>
+							{row.map((item, index) => (
+								<td key={index}>{item}</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</div>
 	);
 };
