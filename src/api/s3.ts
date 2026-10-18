@@ -3,10 +3,10 @@ import type { Entries } from '../types/entries';
 import type { ForecastData } from '../types/forecast';
 import { cleanEntries } from '../utils';
 
-const API_DELAY = 2000;
+const API_DELAY = 300;
 
 export const fetchEntries = async (s3: S3Client, userId: string): Promise<Entries> => {
-	await new Promise((resolve) => setTimeout(resolve, API_DELAY));
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
 	try {
 		const res: GetObjectCommandOutput = await s3.send(
 			new GetObjectCommand({ Bucket: 'wealth-forecast', Key: `${userId}/entries.json` })
@@ -27,7 +27,7 @@ export const fetchEntries = async (s3: S3Client, userId: string): Promise<Entrie
 };
 
 export const updateEntries = async (s3: S3Client, userId: string, updatedEntries: Entries): Promise<void> => {
-	await new Promise((resolve) => setTimeout(resolve, API_DELAY));
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
 	try {
 		await s3.send(
 			new PutObjectCommand({
@@ -49,10 +49,10 @@ export const fetchForecastData = async (s3: S3Client, userId: string): Promise<F
 	const defaultForecastData: ForecastData = {
 		prompt: '',
 		code: '',
-		endDate: { month: 1, year: 0 },
+		endDate: { month: 3, year: 2030 },
 	};
 
-	await new Promise((resolve) => setTimeout(resolve, API_DELAY));
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
 	try {
 		const res: GetObjectCommandOutput = await s3.send(
 			new GetObjectCommand({ Bucket: 'wealth-forecast', Key: `${userId}/forecast.json` })
@@ -77,7 +77,7 @@ export const updateForecastData = async (
 	userId: string,
 	updatedForecastData: ForecastData
 ): Promise<void> => {
-	await new Promise((resolve) => setTimeout(resolve, API_DELAY));
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
 	try {
 		await s3.send(
 			new PutObjectCommand({
