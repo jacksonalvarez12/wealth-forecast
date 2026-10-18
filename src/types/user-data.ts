@@ -6,8 +6,4 @@ export type Entries = {
 	};
 }[];
 
-export type Data = {
-	entries: Entries;
-};
-
 export type Grid = (string | number)[][];

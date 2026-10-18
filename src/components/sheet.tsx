@@ -1,5 +1,5 @@
 import { convertEntriesToGrid } from '../logic/grid';
-import type { Entries, Grid } from '../types/types';
+import type { Entries, Grid } from '../types/user-data';
 
 export const Sheet = (opts: { entries: Entries }) => {
 	const { entries } = opts;

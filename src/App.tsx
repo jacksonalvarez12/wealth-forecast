@@ -1,46 +1,46 @@
-import { Authenticator } from '@aws-amplify/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchData, updateData } from './api/api';
+import { fetchEntries, updateEntries } from './api/s3';
 import './App.css';
+import { EntriesEditor } from './components/entries-editor';
 import { Sheet } from './components/sheet';
+import { useAppContext } from './context/hook';
+import type { Entries } from './types/user-data';
 
 export const App = () => {
+	const { user, s3 } = useAppContext();
+
 	const queryClient = useQueryClient();
 
-	const { data } = useQuery({ queryKey: ['data'], queryFn: fetchData });
+	const { data: entries, isLoading } = useQuery({
+		queryKey: ['entries'],
+		queryFn: () => fetchEntries(s3, user.userId),
+		enabled: !!user?.userId,
+		retry: 1,
+	});
 	const { mutate } = useMutation({
-		mutationFn: updateData,
+		mutationFn: async ({ entries }: { entries: Entries }) => updateEntries(s3, user.userId, entries),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['data'] });
+			queryClient.invalidateQueries({ queryKey: ['entries'] });
 		},
+		retry: 1,
 	});
 
-	const authed = () => {
-		return (
-			<div>
-				<h1>wealth-forecast</h1>
-				{!data ? (
-					<p>Data loading</p>
-				) : (
-					<>
-						<button onClick={() => mutate()}>Update Data</button>
-						<h2>Sheet</h2>
-						<Sheet entries={data.entries} />
-					</>
-				)}
-			</div>
-		);
-	};
+	if (!entries && isLoading) {
+		return <p>Entries loading</p>;
+	} else if (!entries) {
+		return <p>Entries fetch failed</p>;
+	}
 
 	return (
-		<Authenticator hideSignUp>
-			{({ signOut, user }) => (
-				<main>
-					<p>Signed in as {user?.signInDetails?.loginId}</p>
-					<button onClick={signOut}>Sign out</button>
-					{authed()}
-				</main>
-			)}
-		</Authenticator>
+		<div>
+			<h2>Sheet</h2>
+			<Sheet entries={entries} />
+			<EntriesEditor
+				currentEntries={entries}
+				setEntries={(entries: Entries) => {
+					mutate({ entries });
+				}}
+			/>
+		</div>
 	);
 };
