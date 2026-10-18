@@ -1,6 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import { useState } from 'react';
-import type { Entries } from '../types/user-data';
+import { fetchEntries, updateEntries } from '../api/s3';
+import { useAppContext } from '../context/hook';
+import type { Entries } from '../types/entries';
 import { cleanEntries } from '../utils';
 
 const debugEntries: Entries = [
@@ -197,12 +200,31 @@ const EntryEditor = (opts: {
 	);
 };
 
-export const EntriesEditor = (opts: {
-	currentEntries: Entries;
-	setEntries: (entries: Entries) => void;
-	loading: boolean;
-}) => {
-	const { currentEntries, setEntries, loading } = opts;
+export const EntriesEditor = () => {
+	const { user, s3 } = useAppContext();
+
+	const queryClient = useQueryClient();
+	const {
+		data: currentEntries,
+		isLoading,
+		isRefetching,
+	} = useQuery({
+		queryKey: ['entries'],
+		queryFn: () => fetchEntries(s3, user.userId),
+		enabled: !!user?.userId,
+		retry: 1,
+	});
+	const { mutate, isPending } = useMutation({
+		mutationFn: async ({ entries }: { entries: Entries }) => updateEntries(s3, user.userId, entries),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['entries'] });
+		},
+		retry: 1,
+	});
+
+	const setEntries = (entries: Entries) => {
+		mutate({ entries });
+	};
 
 	// Closed State
 	const [state, setState] = useState<'Closed' | 'Add' | 'Edit' | 'Delete'>('Closed');
@@ -212,6 +234,10 @@ export const EntriesEditor = (opts: {
 	});
 
 	const renderClosed = () => {
+		if (!currentEntries) {
+			throw Error('ERROR STATE: No current entries in renderClosed');
+		}
+
 		return (
 			<div>
 				<input
@@ -260,6 +286,10 @@ export const EntriesEditor = (opts: {
 	};
 
 	const renderDelete = () => {
+		if (!currentEntries) {
+			throw Error('ERROR STATE: No current entries in renderDelete');
+		}
+
 		return (
 			<div>
 				<button onClick={() => setState('Closed')}>Cancel</button>
@@ -278,10 +308,18 @@ export const EntriesEditor = (opts: {
 		);
 	};
 
+	if (isLoading) {
+		return null;
+	}
+
+	if (!currentEntries) {
+		return <p>No entries found</p>;
+	}
+
 	return (
 		<div>
-			<h2>Entries</h2>
-			{loading ? (
+			<h2>Entries Editor</h2>
+			{isRefetching || isPending ? (
 				<p>Loading...</p>
 			) : argDate ? (
 				<>
@@ -320,18 +358,7 @@ export const EntriesEditor = (opts: {
 					}
 				</>
 			) : (
-				<>
-					{/* TODO: Remove debug button */}
-					<button
-						onClick={() => {
-							setEntries(debugEntries);
-							setState('Closed');
-						}}
-					>
-						Debug
-					</button>
-					{renderClosed()}
-				</>
+				renderClosed()
 			)}
 		</div>
 	);

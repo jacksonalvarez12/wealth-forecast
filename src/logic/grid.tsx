@@ -1,4 +1,4 @@
-import type { Entries, Grid } from '../types/user-data';
+import type { Entries, Grid } from '../types/entries';
 import { cleanEntries } from '../utils';
 
 const transpose = (arr: any[][]) => arr[0].map((_, colIndex) => arr.map((row) => row[colIndex]));

@@ -1,4 +1,4 @@
-import type { Entries } from './types/user-data';
+import type { Entries } from './types/entries';
 
 export const cleanEntries = (entries: Entries): Entries => {
 	return entries

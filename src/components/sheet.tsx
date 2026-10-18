@@ -1,13 +1,32 @@
+import { useQuery } from '@tanstack/react-query';
+import { fetchEntries } from '../api/s3';
+import { useAppContext } from '../context/hook';
 import { convertEntriesToGrid } from '../logic/grid';
-import type { Entries, Grid } from '../types/user-data';
+import type { Grid } from '../types/entries';
 
-export const Sheet = (opts: { entries: Entries }) => {
-	const { entries } = opts;
+export const Sheet = () => {
+	const { user, s3 } = useAppContext();
+
+	const { data: entries, isLoading } = useQuery({
+		queryKey: ['entries'],
+		queryFn: () => fetchEntries(s3, user.userId),
+		enabled: !!user?.userId,
+		retry: 1,
+	});
+
+	if (isLoading) {
+		return <p>Loading...</p>;
+	}
+
+	if (!entries) {
+		return null;
+	}
 
 	const grid: Grid = convertEntriesToGrid(entries);
 
 	return (
 		<div>
+			<h2>Sheet</h2>
 			<table>
 				<thead>
 					<tr>
