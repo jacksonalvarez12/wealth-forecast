@@ -26,7 +26,6 @@ export const Sheet = () => {
 
 	return (
 		<div>
-			<h2>Sheet</h2>
 			<table>
 				<thead>
 					<tr>

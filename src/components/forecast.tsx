@@ -16,9 +16,5 @@ export const Forecast = () => {
 		return null;
 	}
 
-	return (
-		<div>
-			<h2>Forecast</h2>
-		</div>
-	);
+	return <div></div>;
 };

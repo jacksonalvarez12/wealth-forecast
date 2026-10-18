@@ -318,7 +318,6 @@ export const EntriesEditor = () => {
 
 	return (
 		<div>
-			<h2>Entries Editor</h2>
 			{isRefetching || isPending ? (
 				<p>Loading...</p>
 			) : argDate ? (
