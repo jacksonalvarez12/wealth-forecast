@@ -11,13 +11,17 @@ export const App = () => {
 
 	const queryClient = useQueryClient();
 
-	const { data: entries, isLoading } = useQuery({
+	const {
+		data: entries,
+		isLoading,
+		isRefetching,
+	} = useQuery({
 		queryKey: ['entries'],
 		queryFn: () => fetchEntries(s3, user.userId),
 		enabled: !!user?.userId,
 		retry: 1,
 	});
-	const { mutate } = useMutation({
+	const { mutate, isPending } = useMutation({
 		mutationFn: async ({ entries }: { entries: Entries }) => updateEntries(s3, user.userId, entries),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['entries'] });
@@ -36,6 +40,7 @@ export const App = () => {
 			<h2>Sheet</h2>
 			<Sheet entries={entries} />
 			<EntriesEditor
+				loading={isRefetching || isPending}
 				currentEntries={entries}
 				setEntries={(entries: Entries) => {
 					mutate({ entries });

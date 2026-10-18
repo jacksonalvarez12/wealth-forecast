@@ -1,4 +1,5 @@
 import type { Entries, Grid } from '../types/user-data';
+import { cleanEntries } from '../utils';
 
 const transpose = (arr: any[][]) => arr[0].map((_, colIndex) => arr.map((row) => row[colIndex]));
 
@@ -20,21 +21,10 @@ const identifyGridRow = (
 };
 
 export const convertEntriesToGrid = (entries: Entries): Grid => {
-	const sortedEntries: Entries = entries
-		.sort((a, b) => {
-			if (a.year < b.year) return -1;
-			if (a.year > b.year) return 1;
-			if (a.month < b.month) return -1;
-			if (a.month > b.month) return 1;
-			return 0;
-		})
-		.filter((entry, index) => {
-			// Keep only the first entry for each month
-			return !(index > 0 && entry.year === entries[index - 1].year && entry.month === entries[index - 1].month);
-		});
+	const cleanedEntries: Entries = cleanEntries(entries);
 
 	const itemNames: Set<string> = new Set<string>();
-	for (const entry of sortedEntries) {
+	for (const entry of cleanedEntries) {
 		for (const itemName of Object.keys(entry.items)) {
 			itemNames.add(itemName);
 		}
@@ -43,7 +33,7 @@ export const convertEntriesToGrid = (entries: Entries): Grid => {
 	const gridEntries: ({ title: string } | { key: string; value: number })[][] = [];
 	gridEntries.push(new Array(itemNames.size).fill(undefined));
 
-	for (let gridIndex: number = 1; gridIndex <= sortedEntries.length; gridIndex++) {
+	for (let gridIndex: number = 1; gridIndex <= cleanedEntries.length; gridIndex++) {
 		const currentEntryIndex: number = gridIndex - 1;
 
 		const newColumn: ({ title: string } | { key: string; value: number })[] = new Array(itemNames.size).fill(
@@ -51,7 +41,7 @@ export const convertEntriesToGrid = (entries: Entries): Grid => {
 		);
 		const additions: { key: string; value: number }[] = [];
 
-		Object.entries(sortedEntries[currentEntryIndex].items).forEach(([key, value]) => {
+		Object.entries(cleanedEntries[currentEntryIndex].items).forEach(([key, value]) => {
 			const gridRowIndex: number | undefined = identifyGridRow(gridEntries, key, gridIndex);
 			if (gridRowIndex !== undefined) {
 				newColumn[gridRowIndex] = { key, value };
@@ -101,7 +91,7 @@ export const convertEntriesToGrid = (entries: Entries): Grid => {
 
 	// Add headers
 	const headers: string[] = [''];
-	sortedEntries.forEach((entry) => {
+	cleanedEntries.forEach((entry) => {
 		headers.push(`${entry.month}/${entry.year % 100}`);
 	});
 	finalGrid.unshift(headers);
