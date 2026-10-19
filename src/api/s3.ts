@@ -48,6 +48,7 @@ export const updateEntries = async (s3: S3Client, userId: string, updatedEntries
 export const fetchForecastData = async (s3: S3Client, userId: string): Promise<ForecastData> => {
 	const defaultForecastData: ForecastData = {
 		prompt: '',
+		entriesWithForecast: [],
 		code: '',
 		endDate: { month: 3, year: 2030 },
 	};

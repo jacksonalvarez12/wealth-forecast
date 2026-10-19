@@ -2,25 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchEntries } from '../api/s3';
 import { useAppContext } from '../context/hook';
 import { convertEntriesToGrid } from '../logic/grid';
-import type { Grid } from '../types/entries';
+import type { Entries, Grid } from '../types/entries';
 
-export const Sheet = () => {
-	const { user, s3 } = useAppContext();
-
-	const { data: entries, isLoading } = useQuery({
-		queryKey: ['entries'],
-		queryFn: () => fetchEntries(s3, user.userId),
-		enabled: !!user?.userId,
-		retry: 1,
-	});
-
-	if (isLoading) {
-		return <p>Loading...</p>;
-	}
-
-	if (!entries) {
-		return null;
-	}
+export const EntryTable = (opts: { entries: Entries }) => {
+	const { entries } = opts;
 
 	const grid: Grid = convertEntriesToGrid(entries);
 
@@ -46,4 +31,25 @@ export const Sheet = () => {
 			</table>
 		</div>
 	);
+};
+
+export const Sheet = () => {
+	const { user, s3 } = useAppContext();
+
+	const { data: entries, isLoading } = useQuery({
+		queryKey: ['entries'],
+		queryFn: () => fetchEntries(s3, user.userId),
+		enabled: !!user?.userId,
+		retry: 1,
+	});
+
+	if (isLoading) {
+		return <p>Loading...</p>;
+	}
+
+	if (!entries) {
+		return null;
+	}
+
+	return <EntryTable entries={entries} />;
 };

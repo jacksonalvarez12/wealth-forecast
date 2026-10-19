@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { fetchEntries, fetchForecastData } from '../api/s3';
+import { runForecast } from '../api/bedrock';
+import { fetchEntries, fetchForecastData, updateForecastData } from '../api/s3';
 import { useAppContext } from '../context/hook';
+import type { ForecastData } from '../types/forecast';
+import { EntryTable } from './sheet';
 
 export const Forecast = () => {
 	const { user, s3, bedrockRuntime } = useAppContext();
+
+	const queryClient = useQueryClient();
 
 	const { data: entries } = useQuery({
 		queryKey: ['entries'],
@@ -24,6 +29,19 @@ export const Forecast = () => {
 		retry: 1,
 	});
 
+	const { mutate, isPending } = useMutation({
+		mutationFn: async ({ forecastData }: { forecastData: ForecastData }) =>
+			updateForecastData(s3, user.userId, forecastData),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['forecast'] });
+		},
+		retry: 1,
+	});
+
+	const setForecastData = (forecastData: ForecastData) => {
+		mutate({ forecastData });
+	};
+
 	const [prompt, setPrompt] = useState<string>('');
 	const [endDate, setEndDate] = useState<{ month: number; year: number } | null>(null);
 
@@ -34,7 +52,7 @@ export const Forecast = () => {
 		}
 	}, [forecastData]);
 
-	const runForecast = () => {
+	const onSubmit = async () => {
 		if (!prompt || prompt === forecastData?.prompt || !endDate) {
 			return;
 		}
@@ -52,6 +70,15 @@ export const Forecast = () => {
 			alert('Forecast end date must be after your latest entry');
 			return;
 		}
+
+		const { entriesWithForecast, code } = await runForecast(bedrockRuntime, prompt, entries, endDate);
+
+		setForecastData({
+			prompt,
+			entriesWithForecast,
+			code,
+			endDate,
+		});
 	};
 
 	return (
@@ -62,51 +89,67 @@ export const Forecast = () => {
 				<p>No forecast data</p>
 			) : (
 				<div>
-					<label htmlFor='prompt'>
-						<p>
-							<strong>Construct your forecast prompt. </strong>An LLM will write code to generate your
-							financial forecast.
-						</p>
-						<p>Give the following information:</p>
-						<ul>
-							<li>How much money is moving between which accounts and when</li>
-							<li>Interest rates</li>
-							<li>Expected rates of return</li>
-							<li>What to do with money once a debt is paid off</li>
-							<li>Etc.</li>
-						</ul>
-					</label>
-					<textarea
-						name='prompt'
-						value={prompt}
-						onChange={(e) => setPrompt(e.target.value)}
-						placeholder='Enter your prompt'
-					/>
-					<label htmlFor='endDate'>Forecast End Date</label>
-					<input
-						name='endDate'
-						type={'month'}
-						onChange={(e) => {
-							if (e.target.value === '') {
-								setEndDate(null);
-								return;
-							}
+					<div>
+						<label htmlFor='prompt'>
+							<p>
+								<strong>Construct your forecast prompt. </strong>An LLM will write code to generate your
+								financial forecast.
+							</p>
+							<p>Give the following information:</p>
+							<ul>
+								<li>How much money is moving between which accounts and when</li>
+								<li>Interest rates</li>
+								<li>Expected rates of return</li>
+								<li>What to do with money once a debt is paid off</li>
+								<li>Etc.</li>
+							</ul>
+						</label>
+						<textarea
+							name='prompt'
+							value={prompt}
+							onChange={(e) => setPrompt(e.target.value)}
+							placeholder='Enter your prompt'
+						/>
+						<label htmlFor='endDate'>Forecast End Date</label>
+						<input
+							name='endDate'
+							type={'month'}
+							onChange={(e) => {
+								if (e.target.value === '') {
+									setEndDate(null);
+									return;
+								}
 
-							const month: number = parseInt(e.target.value.split('-')[1]);
-							const year: number = parseInt(e.target.value.split('-')[0]);
-							setEndDate({ month, year });
-						}}
-						value={
-							endDate ? `${endDate.year}-${endDate.month < 10 ? `0${endDate.month}` : endDate.month}` : ''
-						}
-					/>
-					<button
-						type='submit'
-						onClick={runForecast}
-						disabled={!prompt || prompt === forecastData.prompt || !endDate}
-					>
-						Run Forecast
-					</button>
+								const month: number = parseInt(e.target.value.split('-')[1]);
+								const year: number = parseInt(e.target.value.split('-')[0]);
+								setEndDate({ month, year });
+							}}
+							value={
+								endDate
+									? `${endDate.year}-${endDate.month < 10 ? `0${endDate.month}` : endDate.month}`
+									: ''
+							}
+						/>
+						<button
+							type='submit'
+							onClick={onSubmit}
+							disabled={!prompt || prompt === forecastData.prompt || !endDate}
+						>
+							Run Forecast
+						</button>
+					</div>
+					<div>
+						{isPending ? (
+							<p>Updating forecast...</p>
+						) : (
+							<>
+								<h3>Forecast Sheet</h3>
+								<EntryTable entries={forecastData.entriesWithForecast}></EntryTable>
+								<h3>Code</h3>
+								<code>{forecastData.code}</code>
+							</>
+						)}
+					</div>
 				</div>
 			)}
 		</div>
