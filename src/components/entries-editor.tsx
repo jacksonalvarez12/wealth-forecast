@@ -19,7 +19,7 @@ const EntryEditor = (opts: {
 		argDateObj: { month: number; year: number },
 		currentEntriesObj: Entries,
 		typeStr: 'New' | 'Existing'
-	) => {
+	): { key: string; value: number }[] => {
 		// Find suitable entry to prefill item keys
 		const items: { key: string; value: number }[] = [];
 
@@ -47,6 +47,8 @@ const EntryEditor = (opts: {
 			Object.keys(entriesWithArgDate[1].items).forEach((key) => {
 				items.push({ key, value: 0 });
 			});
+		} else if (index === 0 && entriesWithArgDate.length === 1) {
+			return [];
 		} else {
 			Object.keys(entriesWithArgDate[index - 1].items).forEach((key) => {
 				items.push({ key, value: 0 });
@@ -90,8 +92,12 @@ const EntryEditor = (opts: {
 			</div>
 
 			<div className='editor__rows'>
+				{entry.length === 0 && <p className='empty'>No accounts yet. Click Add Item to add one.</p>}
 				{entry.map(({ key, value }, index) => (
-					<div key={index} className='item-row'>
+					<div
+						key={index}
+						className='item-row'
+					>
 						<input
 							className='input item-row__name'
 							type='text'
@@ -106,7 +112,10 @@ const EntryEditor = (opts: {
 							required
 						/>
 						<div className='input-group item-row__value'>
-							<span className='input-group__prefix' aria-hidden='true'>
+							<span
+								className='input-group__prefix'
+								aria-hidden='true'
+							>
 								$
 							</span>
 							<input
@@ -290,7 +299,10 @@ export const EntriesEditor = () => {
 					Permanently delete the entry for {argDate?.month}/{argDate?.year}? This can't be undone.
 				</p>
 				<div className='btn-row'>
-					<button className='btn btn--secondary' onClick={() => setState('Closed')}>
+					<button
+						className='btn btn--secondary'
+						onClick={() => setState('Closed')}
+					>
 						Cancel
 					</button>
 					<button

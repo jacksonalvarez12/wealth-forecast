@@ -70,4 +70,9 @@ Notice how I use readable code. This is because the end user will eventually rea
 comments in your code, explaining what's happening.
 
 Ok, that should be it. Make sure to output ONLY the function code, nothing else. Good luck!
+
+Brief addendums:
+
+Make sure that when a debt account is paid off and then the money is directed elsewhere, on the month the debt would be paid off,
+only the portion needed to pay it off goes towards the debt, the remainder would go to whatever all of it would go to next month
 `;

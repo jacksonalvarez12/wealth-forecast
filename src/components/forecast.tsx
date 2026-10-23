@@ -68,8 +68,6 @@ export const Forecast = () => {
 			return;
 		}
 
-		setForecastRunning(true);
-
 		// Make sure end date is after last entry
 		if (!entries?.length) {
 			alert('You need to add your first account balances before you can generate a forecast');
@@ -83,6 +81,8 @@ export const Forecast = () => {
 			alert('Forecast end date must be after your latest entry');
 			return;
 		}
+
+		setForecastRunning(true);
 
 		const { entriesWithForecast, code } = await runForecast(bedrockRuntime, prompt, entries, endDate);
 
@@ -105,7 +105,10 @@ export const Forecast = () => {
 			) : (
 				<div className='forecast'>
 					<div className='forecast__form'>
-						<label htmlFor='prompt' className='forecast__intro'>
+						<label
+							htmlFor='prompt'
+							className='forecast__intro'
+						>
 							<p>
 								<strong>Construct your forecast prompt. </strong>An LLM will write code to generate your
 								financial forecast.
@@ -129,7 +132,10 @@ export const Forecast = () => {
 						/>
 						<div className='forecast__run'>
 							<div className='field'>
-								<label htmlFor='endDate' className='field__label'>
+								<label
+									htmlFor='endDate'
+									className='field__label'
+								>
 									Forecast End Date
 								</label>
 								<input
@@ -174,6 +180,11 @@ export const Forecast = () => {
 					<div className='forecast__results'>
 						{isPending || isRefetching || forecastRunning ? (
 							<p className='loading loading--results'>Updating forecast…</p>
+						) : forecastData.entriesWithForecast.length === 0 ? (
+							<p className='empty empty--results'>
+								No forecast yet. Write a prompt, pick an end date, and run it to see your projected
+								balances and the generated code here.
+							</p>
 						) : (
 							<>
 								<h3 className='subheading'>Forecast Sheet</h3>

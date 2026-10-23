@@ -128,7 +128,7 @@ export const convertEntriesToGrid = (
 		liquidAssetsRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(liquidAssetsRow);
 		illiquidAssetsRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(illiquidAssetsRow);
 	}
-	finalGrid.unshift(netWorthRow);
+	netWorthRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(netWorthRow);
 
 	// Add headers
 	const headers: string[] = [''];

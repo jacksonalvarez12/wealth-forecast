@@ -584,6 +584,21 @@ select.input {
 	text-align: center;
 }
 
+/* Empty states sized like the content they stand in for, so the layout doesn't jump */
+.empty--sheet {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 160px;
+}
+
+.empty--results {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 120px;
+}
+
 .status {
 	padding: var(--space-6) var(--space-4);
 	text-align: center;
@@ -838,6 +853,10 @@ select.input {
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	overflow: hidden;
+}
+
+.class-list:empty {
+	display: none;
 }
 
 .class-list__item {

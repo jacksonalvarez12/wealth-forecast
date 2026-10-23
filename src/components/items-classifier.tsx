@@ -107,7 +107,11 @@ export const ItemsClassifier = () => {
 					</ul>
 				)}
 				{itemClassifications?.length === 0 && (
-					<p className='empty'>Nothing classified yet. Click Edit to classify your accounts.</p>
+					<p className='empty'>
+						{entries.length === 0
+							? 'Your accounts will show up here once you add your first entry.'
+							: 'Nothing classified yet. Click Edit to classify your accounts.'}
+					</p>
 				)}
 				<div className='btn-row'>
 					<button
@@ -139,6 +143,9 @@ export const ItemsClassifier = () => {
 		return (
 			<div className='classifier'>
 				<div className='class-edit'>
+					{itemNames.size === 0 && (
+						<p className='empty'>No accounts yet. Add an entry first, then classify its accounts here.</p>
+					)}
 					{Array.from(itemNames).map((itemName, index) => {
 						return (
 							<label key={index} className='class-edit__row'>

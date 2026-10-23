@@ -26,18 +26,19 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 
 	const grid: Grid = convertEntriesToGrid(entries, itemClassifications, showBreakdown);
 
-	// Purely visual: Net Worth is always the first body row, breakdown rows follow it when shown
+	// Purely visual: Net Worth (omitted when all zero) leads the body, breakdown rows follow it when shown
 	const rows = grid.slice(1);
-	let summaryRowCount = 0;
+	const totalRowCount = rows[0]?.[0] === 'Net Worth' ? 1 : 0;
+	let summaryRowCount = totalRowCount;
 	if (showBreakdown) {
-		while (summaryRowCount < 3 && SUMMARY_LABELS.includes(String(rows[summaryRowCount + 1]?.[0]))) {
+		while (summaryRowCount < totalRowCount + 3 && SUMMARY_LABELS.includes(String(rows[summaryRowCount]?.[0]))) {
 			summaryRowCount++;
 		}
 	}
 	const rowClassName = (rowIndex: number) => {
-		if (rowIndex === 0) return 'table__row--total';
-		if (rowIndex <= summaryRowCount) {
-			return `table__row--summary${rowIndex === summaryRowCount ? ' table__row--summary-last' : ''}`;
+		if (rowIndex < totalRowCount) return 'table__row--total';
+		if (rowIndex < summaryRowCount) {
+			return `table__row--summary${rowIndex === summaryRowCount - 1 ? ' table__row--summary-last' : ''}`;
 		}
 		return undefined;
 	};
@@ -69,7 +70,7 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 												? item < 0
 													? 'num num--negative'
 													: 'num'
-												: item !== '' && (index > 0 || rowIndex > summaryRowCount)
+												: item !== '' && (index > 0 || rowIndex >= summaryRowCount)
 													? 'cell-label'
 													: undefined
 										}
@@ -120,6 +121,16 @@ export const Sheet = (opts: { entriesParam?: Entries }) => {
 
 	if (!itemClassifications || isLoadingItemClassifications) {
 		return <p className='loading loading--sheet'>Loading…</p>;
+	}
+
+	if ((entriesParam || entries!).length === 0) {
+		return (
+			<p className='empty empty--sheet'>
+				{entriesParam
+					? 'No forecast yet.'
+					: 'No entries yet. Add your first month of balances in Monthly Entries.'}
+			</p>
+		);
 	}
 
 	return <EntryTable entries={entriesParam || entries!} itemClassifications={itemClassifications} />;
