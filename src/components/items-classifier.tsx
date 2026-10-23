@@ -2,7 +2,20 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { fetchEntries, fetchItemClassifications, updateItemClassifications } from '../api/s3';
 import { useAppContext } from '../context/hook';
-import type { Entries, ItemClassifications } from '../types/entries';
+import type { Classification, Entries, ItemClassifications } from '../types/entries';
+
+const badgeClassName = (classification?: Classification | '') => {
+	switch (classification) {
+		case 'Debt':
+			return 'badge--debt';
+		case 'Illiquid Asset':
+			return 'badge--illiquid';
+		case 'Liquid Asset':
+			return 'badge--liquid';
+		default:
+			return 'badge--none';
+	}
+};
 
 export const ItemsClassifier = () => {
 	const { user, s3 } = useAppContext();
@@ -78,24 +91,33 @@ export const ItemsClassifier = () => {
 		}
 
 		return (
-			<div>
+			<div className='classifier'>
 				{itemClassifications && (
-					<div>
+					<ul className='class-list'>
 						{itemClassifications.map((c, index) => {
 							return (
-								<div key={index}>
-									<p>{`${c.itemName}: ${c.classification || 'No Classification'}`}</p>
-								</div>
+								<li key={index} className='class-list__item'>
+									<span className='class-list__name'>{c.itemName}</span>
+									<span className={`badge ${badgeClassName(c.classification)}`}>
+										{c.classification || 'No Classification'}
+									</span>
+								</li>
 							);
 						})}
-					</div>
+					</ul>
 				)}
-				<button
-					disabled={isLoading || isRefetching || isPending}
-					onClick={() => setState('Edit')}
-				>
-					Edit
-				</button>
+				{itemClassifications?.length === 0 && (
+					<p className='empty'>Nothing classified yet. Click Edit to classify your accounts.</p>
+				)}
+				<div className='btn-row'>
+					<button
+						className='btn btn--secondary'
+						disabled={isLoading || isRefetching || isPending}
+						onClick={() => setState('Edit')}
+					>
+						Edit
+					</button>
+				</div>
 			</div>
 		);
 	};
@@ -115,50 +137,60 @@ export const ItemsClassifier = () => {
 		}
 
 		return (
-			<div>
-				{Array.from(itemNames).map((itemName, index) => {
-					return (
-						<div key={index}>
-							<p>{itemName}</p>
-							<select
-								value={
-									edittingClassifications.find((c) => c.itemName === itemName)?.classification || ''
-								}
-								onChange={(e) => {
-									const newClassifications: ItemClassifications = edittingClassifications.map((c) => {
-										if (c.itemName === itemName) {
-											return { ...c, classification: e.target.value };
-										}
-										return c;
-									}) as ItemClassifications;
-									calcAndSetEdittingClassifications(entries, newClassifications);
-								}}
-							>
-								<option value=''></option>
-								<option value='Debt'>Debt</option>
-								<option value='Illiquid Asset'>Illiquid Asset</option>
-								<option value='Liquid Asset'>Liquid Asset</option>
-							</select>
-						</div>
-					);
-				})}
-				<button
-					disabled={isPending || isRefetching || isLoading}
-					onClick={() => {
-						setClassifications(edittingClassifications);
-						setState('Closed');
-					}}
-				>
-					Save
-				</button>
-				<button
-					onClick={() => {
-						setState('Closed');
-						calcAndSetEdittingClassifications(entries, itemClassifications);
-					}}
-				>
-					Cancel
-				</button>
+			<div className='classifier'>
+				<div className='class-edit'>
+					{Array.from(itemNames).map((itemName, index) => {
+						return (
+							<label key={index} className='class-edit__row'>
+								<span className='class-edit__name'>{itemName}</span>
+								<select
+									className='input'
+									value={
+										edittingClassifications.find((c) => c.itemName === itemName)?.classification ||
+										''
+									}
+									onChange={(e) => {
+										const newClassifications: ItemClassifications = edittingClassifications.map(
+											(c) => {
+												if (c.itemName === itemName) {
+													return { ...c, classification: e.target.value };
+												}
+												return c;
+											}
+										) as ItemClassifications;
+										calcAndSetEdittingClassifications(entries, newClassifications);
+									}}
+								>
+									<option value=''></option>
+									<option value='Debt'>Debt</option>
+									<option value='Illiquid Asset'>Illiquid Asset</option>
+									<option value='Liquid Asset'>Liquid Asset</option>
+								</select>
+							</label>
+						);
+					})}
+				</div>
+				<div className='btn-row'>
+					<button
+						className='btn btn--primary'
+						disabled={isPending || isRefetching || isLoading}
+						onClick={() => {
+							setClassifications(edittingClassifications);
+							setState('Closed');
+						}}
+					>
+						Save
+					</button>
+					<button
+						className='btn btn--ghost'
+						onClick={() => {
+							setState('Closed');
+							calcAndSetEdittingClassifications(entries, itemClassifications);
+						}}
+					>
+						Cancel
+					</button>
+				</div>
 			</div>
 		);
 	};
@@ -166,7 +198,7 @@ export const ItemsClassifier = () => {
 	return (
 		<div>
 			{!entries || isLoading ? (
-				<p>Loading...</p>
+				<p className='loading loading--classifier'>Loading…</p>
 			) : (
 				{
 					Closed: renderClosed(),

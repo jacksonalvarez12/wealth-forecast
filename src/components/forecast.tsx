@@ -99,19 +99,19 @@ export const Forecast = () => {
 	return (
 		<div>
 			{isLoading || isRefetching || !entries ? (
-				<p>Loading...</p>
+				<p className='loading loading--forecast'>Loading…</p>
 			) : !forecastData ? (
-				<p>No forecast data</p>
+				<p className='empty'>No forecast data</p>
 			) : (
-				<div>
-					<div>
-						<label htmlFor='prompt'>
+				<div className='forecast'>
+					<div className='forecast__form'>
+						<label htmlFor='prompt' className='forecast__intro'>
 							<p>
 								<strong>Construct your forecast prompt. </strong>An LLM will write code to generate your
 								financial forecast.
 							</p>
 							<p>Give the following information:</p>
-							<ul>
+							<ul className='forecast__list'>
 								<li>How much money is moving between which accounts and when</li>
 								<li>Interest rates</li>
 								<li>Expected rates of return</li>
@@ -120,55 +120,66 @@ export const Forecast = () => {
 							</ul>
 						</label>
 						<textarea
+							id='prompt'
+							className='input textarea'
 							name='prompt'
 							value={prompt}
 							onChange={(e) => setPrompt(e.target.value)}
 							placeholder='Enter your prompt'
 						/>
-						<label htmlFor='endDate'>Forecast End Date</label>
-						<input
-							name='endDate'
-							type={'month'}
-							onChange={(e) => {
-								if (e.target.value === '') {
-									setEndDate(null);
-									return;
-								}
+						<div className='forecast__run'>
+							<div className='field'>
+								<label htmlFor='endDate' className='field__label'>
+									Forecast End Date
+								</label>
+								<input
+									id='endDate'
+									className='input'
+									name='endDate'
+									type={'month'}
+									onChange={(e) => {
+										if (e.target.value === '') {
+											setEndDate(null);
+											return;
+										}
 
-								const month: number = parseInt(e.target.value.split('-')[1]);
-								const year: number = parseInt(e.target.value.split('-')[0]);
-								setEndDate({ month, year });
-							}}
-							value={
-								endDate
-									? `${endDate.year}-${endDate.month < 10 ? `0${endDate.month}` : endDate.month}`
-									: ''
-							}
-						/>
-						<button
-							type='submit'
-							onClick={onSubmit}
-							disabled={
-								!prompt ||
-								(prompt === forecastData.prompt &&
-									endDate?.year === forecastData.endDate.year &&
-									endDate.month === forecastData.endDate.month) ||
-								!endDate ||
-								forecastRunning
-							}
-						>
-							Run Forecast
-						</button>
+										const month: number = parseInt(e.target.value.split('-')[1]);
+										const year: number = parseInt(e.target.value.split('-')[0]);
+										setEndDate({ month, year });
+									}}
+									value={
+										endDate
+											? `${endDate.year}-${endDate.month < 10 ? `0${endDate.month}` : endDate.month}`
+											: ''
+									}
+								/>
+							</div>
+							<button
+								type='submit'
+								className='btn btn--primary'
+								onClick={onSubmit}
+								disabled={
+									!prompt ||
+									(prompt === forecastData.prompt &&
+										endDate?.year === forecastData.endDate.year &&
+										endDate.month === forecastData.endDate.month) ||
+									!endDate ||
+									forecastRunning
+								}
+							>
+								Run Forecast
+							</button>
+						</div>
 					</div>
-					<div>
+					<div className='forecast__results'>
 						{isPending || isRefetching || forecastRunning ? (
-							<p>Updating forecast...</p>
+							<p className='loading loading--results'>Updating forecast…</p>
 						) : (
 							<>
-								<h3>Forecast Sheet</h3>
+								<h3 className='subheading'>Forecast Sheet</h3>
 								<Sheet entriesParam={forecastData.entriesWithForecast}></Sheet>
-								<h3>Code</h3>
-								<pre>
+								<h3 className='subheading'>Code</h3>
+								<pre className='code'>
 									<code className='language-javascript'>{forecastData.code}</code>
 								</pre>
 							</>

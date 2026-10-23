@@ -24,11 +24,15 @@ export const AppProvider = (opts: { user: AuthUser | undefined; children: React.
 	}, [user?.userId]);
 
 	if (!user?.userId) {
-		return <p>User or User ID is undefined</p>;
+		return (
+			<p className='status status--error'>
+				Something went wrong loading your account. Try signing out and back in.
+			</p>
+		);
 	}
 
 	if (!s3 || !bedrockRuntime) {
-		return <p>Context Loading</p>;
+		return <p className='loading loading--page'>Loading…</p>;
 	}
 
 	return <AppContext.Provider value={{ user, s3, bedrockRuntime }}>{children}</AppContext.Provider>;

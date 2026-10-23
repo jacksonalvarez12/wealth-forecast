@@ -6,47 +6,6 @@ import { useAppContext } from '../context/hook';
 import { cleanEntries } from '../logic/utils';
 import type { Entries } from '../types/entries';
 
-const debugEntries: Entries = [
-	{
-		month: 2,
-		year: 2026,
-		items: {
-			'401k': 1500,
-			HYSA: 7000,
-			'Student Loans': -10000,
-			'Roth IRA': 5000,
-		},
-	},
-	{
-		month: 12,
-		year: 2025,
-		items: {
-			'401k': 1000,
-			'Auto Loan': -3000,
-			HYSA: 10000,
-		},
-	},
-	{
-		month: 1,
-		year: 2026,
-		items: {
-			'401k': 1000,
-			HYSA: 10000,
-			'Roth IRA': 4000,
-		},
-	},
-	{
-		month: 11,
-		year: 2025,
-		items: {
-			'401k': 1000,
-			'Auto Loan': -5000,
-			HYSA: 10000,
-			'Credit Card Debt': -500,
-		},
-	},
-];
-
 const EntryEditor = (opts: {
 	type: 'New' | 'Existing';
 	currentEntries: Entries;
@@ -113,89 +72,110 @@ const EntryEditor = (opts: {
 	}
 
 	return (
-		<div>
-			<button
-				onClick={() => {
-					setState('Closed');
-				}}
-			>
-				Cancel
-			</button>
-			<p>
-				{argDate
-					? `${type === 'New' ? 'Adding' : 'Editing'} entry for ${argDate.month}/${argDate.year}`
-					: 'Error. Refresh the page.'}
-			</p>
+		<div className='editor'>
+			<div className='editor__header'>
+				<p className='editor__title'>
+					{argDate
+						? `${type === 'New' ? 'Adding' : 'Editing'} entry for ${argDate.month}/${argDate.year}`
+						: 'Error. Refresh the page.'}
+				</p>
+				<button
+					className='btn btn--ghost btn--sm'
+					onClick={() => {
+						setState('Closed');
+					}}
+				>
+					Cancel
+				</button>
+			</div>
 
-			{entry.map(({ key, value }, index) => (
-				<div key={index}>
-					<input
-						type='text'
-						value={key}
-						onChange={(e) => {
-							const newItems = [...entry];
-							newItems[index] = { key: e.target.value, value };
-							setEntry(newItems);
-						}}
-						required
-					/>
-					<p>$</p>
-					<input
-						type='number'
-						value={Number.isNaN(value) ? '' : value}
-						onChange={(e) => {
-							const newItems = [...entry];
-							newItems[index] = {
-								key,
-								value: e.target.value === '' ? NaN : parseInt(e.target.value),
-							};
-							setEntry(newItems);
-						}}
-						required
-					/>
-					<button
-						type='button'
-						onClick={() => {
-							const newItems = [...entry];
-							newItems.splice(index, 1);
-							setEntry(newItems);
-						}}
-					>
-						Remove
-					</button>
-				</div>
-			))}
-			<button
-				type='button'
-				onClick={() => {
-					const newItems = [...entry];
-					newItems.push({ key: '', value: 0 });
-					setEntry(newItems);
-				}}
-			>
-				Add Item
-			</button>
-			<button
-				onClick={() => {
-					const newEntry: Entries[0] = {
-						...argDate,
-						items: {},
-					};
-					entry.forEach(({ key, value }) => {
-						newEntry.items[key] = value;
-					});
-					setEntries([
-						...currentEntries.filter(
-							(entry) => !(entry.year === argDate?.year && entry.month === argDate?.month)
-						),
-						newEntry,
-					]);
-					setState('Closed');
-				}}
-				disabled={entry.length === 0 || entry.some(({ key, value }) => key === '' || !Number.isFinite(value))}
-			>
-				Lock In Entry
-			</button>
+			<div className='editor__rows'>
+				{entry.map(({ key, value }, index) => (
+					<div key={index} className='item-row'>
+						<input
+							className='input item-row__name'
+							type='text'
+							placeholder='Account name'
+							aria-label='Account name'
+							value={key}
+							onChange={(e) => {
+								const newItems = [...entry];
+								newItems[index] = { key: e.target.value, value };
+								setEntry(newItems);
+							}}
+							required
+						/>
+						<div className='input-group item-row__value'>
+							<span className='input-group__prefix' aria-hidden='true'>
+								$
+							</span>
+							<input
+								className='input'
+								type='number'
+								aria-label='Balance'
+								value={Number.isNaN(value) ? '' : value}
+								onChange={(e) => {
+									const newItems = [...entry];
+									newItems[index] = {
+										key,
+										value: e.target.value === '' ? NaN : parseInt(e.target.value),
+									};
+									setEntry(newItems);
+								}}
+								required
+							/>
+						</div>
+						<button
+							type='button'
+							className='btn btn--ghost btn--sm item-row__remove'
+							onClick={() => {
+								const newItems = [...entry];
+								newItems.splice(index, 1);
+								setEntry(newItems);
+							}}
+						>
+							Remove
+						</button>
+					</div>
+				))}
+			</div>
+			<div className='btn-row'>
+				<button
+					type='button'
+					className='btn btn--secondary'
+					onClick={() => {
+						const newItems = [...entry];
+						newItems.push({ key: '', value: 0 });
+						setEntry(newItems);
+					}}
+				>
+					Add Item
+				</button>
+				<button
+					className='btn btn--primary'
+					onClick={() => {
+						const newEntry: Entries[0] = {
+							...argDate,
+							items: {},
+						};
+						entry.forEach(({ key, value }) => {
+							newEntry.items[key] = value;
+						});
+						setEntries([
+							...currentEntries.filter(
+								(entry) => !(entry.year === argDate?.year && entry.month === argDate?.month)
+							),
+							newEntry,
+						]);
+						setState('Closed');
+					}}
+					disabled={
+						entry.length === 0 || entry.some(({ key, value }) => key === '' || !Number.isFinite(value))
+					}
+				>
+					Lock In Entry
+				</button>
+			</div>
 		</div>
 	);
 };
@@ -240,8 +220,10 @@ export const EntriesEditor = () => {
 		}
 
 		return (
-			<div>
+			<div className='controls'>
 				<input
+					className='input controls__month'
+					aria-label='Month'
 					type={'month'}
 					onChange={(e) => {
 						if (e.target.value === '') {
@@ -255,33 +237,44 @@ export const EntriesEditor = () => {
 					}}
 					value={argDate ? `${argDate.year}-${argDate.month < 10 ? `0${argDate.month}` : argDate.month}` : ''}
 				/>
-				<button
-					onClick={() => setState('Add')}
-					disabled={
-						!argDate ||
-						currentEntries.some((entry) => entry.year === argDate?.year && entry.month === argDate?.month)
-					}
-				>
-					Add
-				</button>
-				<button
-					onClick={() => setState('Edit')}
-					disabled={
-						!argDate ||
-						!currentEntries.some((entry) => entry.year === argDate?.year && entry.month === argDate?.month)
-					}
-				>
-					Edit
-				</button>
-				<button
-					onClick={() => setState('Delete')}
-					disabled={
-						!argDate ||
-						!currentEntries.some((entry) => entry.year === argDate?.year && entry.month === argDate?.month)
-					}
-				>
-					Delete
-				</button>
+				<div className='btn-row'>
+					<button
+						className='btn btn--primary'
+						onClick={() => setState('Add')}
+						disabled={
+							!argDate ||
+							currentEntries.some(
+								(entry) => entry.year === argDate?.year && entry.month === argDate?.month
+							)
+						}
+					>
+						Add
+					</button>
+					<button
+						className='btn btn--secondary'
+						onClick={() => setState('Edit')}
+						disabled={
+							!argDate ||
+							!currentEntries.some(
+								(entry) => entry.year === argDate?.year && entry.month === argDate?.month
+							)
+						}
+					>
+						Edit
+					</button>
+					<button
+						className='btn btn--danger-ghost'
+						onClick={() => setState('Delete')}
+						disabled={
+							!argDate ||
+							!currentEntries.some(
+								(entry) => entry.year === argDate?.year && entry.month === argDate?.month
+							)
+						}
+					>
+						Delete
+					</button>
+				</div>
 			</div>
 		);
 	};
@@ -292,71 +285,70 @@ export const EntriesEditor = () => {
 		}
 
 		return (
-			<div>
-				<button onClick={() => setState('Closed')}>Cancel</button>
-				<button
-					onClick={() => {
-						const newEntries = currentEntries.filter(
-							(entry) => !(entry.year === argDate?.year && entry.month === argDate?.month)
-						);
-						setEntries(newEntries);
-						setState('Closed');
-					}}
-				>
-					Delete {argDate?.month}/{argDate?.year} Entry
-				</button>
+			<div className='confirm'>
+				<p className='confirm__text'>
+					Permanently delete the entry for {argDate?.month}/{argDate?.year}? This can't be undone.
+				</p>
+				<div className='btn-row'>
+					<button className='btn btn--secondary' onClick={() => setState('Closed')}>
+						Cancel
+					</button>
+					<button
+						className='btn btn--danger'
+						onClick={() => {
+							const newEntries = currentEntries.filter(
+								(entry) => !(entry.year === argDate?.year && entry.month === argDate?.month)
+							);
+							setEntries(newEntries);
+							setState('Closed');
+						}}
+					>
+						Delete {argDate?.month}/{argDate?.year} Entry
+					</button>
+				</div>
 			</div>
 		);
 	};
 
 	if (isLoading) {
-		return null;
+		return (
+			<div className='entries'>
+				<p className='loading loading--fill'>Loading…</p>
+			</div>
+		);
 	}
 
 	if (!currentEntries) {
-		return <p>No entries found</p>;
+		return <p className='empty'>No entries found</p>;
 	}
 
 	return (
-		<div>
+		<div className='entries'>
 			{isRefetching || isPending ? (
-				<p>Loading...</p>
+				<p className='loading loading--fill'>Loading…</p>
 			) : argDate ? (
-				<>
-					{/* TODO: Remove debug button */}
-					<button
-						onClick={() => {
-							setEntries(debugEntries);
-							setState('Closed');
-						}}
-					>
-						Debug
-					</button>
-					{
-						{
-							Closed: renderClosed(),
-							Add: (
-								<EntryEditor
-									type={'New'}
-									setEntries={setEntries}
-									currentEntries={currentEntries}
-									setState={setState}
-									argDate={argDate}
-								/>
-							),
-							Edit: (
-								<EntryEditor
-									type={'Existing'}
-									setEntries={setEntries}
-									currentEntries={currentEntries}
-									setState={setState}
-									argDate={argDate}
-								/>
-							),
-							Delete: renderDelete(),
-						}[state]
-					}
-				</>
+				{
+					Closed: renderClosed(),
+					Add: (
+						<EntryEditor
+							type={'New'}
+							setEntries={setEntries}
+							currentEntries={currentEntries}
+							setState={setState}
+							argDate={argDate}
+						/>
+					),
+					Edit: (
+						<EntryEditor
+							type={'Existing'}
+							setEntries={setEntries}
+							currentEntries={currentEntries}
+							setState={setState}
+							argDate={argDate}
+						/>
+					),
+					Delete: renderDelete(),
+				}[state]
 			) : (
 				renderClosed()
 			)}
