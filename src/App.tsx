@@ -1,11 +1,14 @@
 import './App.css';
 import { EntriesEditor } from './components/entries-editor';
 import { Forecast } from './components/forecast';
+import { ItemsClassifier } from './components/items-classifier';
 import { Sheet } from './components/sheet';
 
 export const App = () => {
 	return (
 		<div>
+			<h2>Items Classifier</h2>
+			<ItemsClassifier />
 			<h2>Sheet</h2>
 			<Sheet />
 			<h2>Entries Editor</h2>

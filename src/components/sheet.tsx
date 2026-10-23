@@ -1,16 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchEntries } from '../api/s3';
+import { useState } from 'react';
+import { fetchEntries, fetchItemClassifications } from '../api/s3';
 import { useAppContext } from '../context/hook';
 import { convertEntriesToGrid } from '../logic/grid';
-import type { Entries, Grid } from '../types/entries';
+import type { Entries, Grid, ItemClassifications } from '../types/entries';
 
-export const EntryTable = (opts: { entries: Entries }) => {
-	const { entries } = opts;
+const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassifications }) => {
+	const { entries, itemClassifications } = opts;
 
-	const grid: Grid = convertEntriesToGrid(entries);
+	const [showBreakdown, setShowBreakdown] = useState(false);
+
+	const grid: Grid = convertEntriesToGrid(entries, itemClassifications, showBreakdown);
 
 	return (
 		<div>
+			<button onClick={() => setShowBreakdown(!showBreakdown)}>
+				{showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
+			</button>
 			<table>
 				<thead>
 					<tr>
@@ -33,10 +39,12 @@ export const EntryTable = (opts: { entries: Entries }) => {
 	);
 };
 
-export const Sheet = () => {
+export const Sheet = (opts: { entriesParam?: Entries }) => {
+	const { entriesParam } = opts;
+
 	const { user, s3 } = useAppContext();
 
-	const { data: entries, isLoading } = useQuery({
+	const { data: entries, isLoading: isLoadingEntries } = useQuery({
 		queryKey: ['entries'],
 		queryFn: () => fetchEntries(s3, user.userId),
 		enabled: !!user?.userId,
@@ -44,13 +52,26 @@ export const Sheet = () => {
 		staleTime: 5 * 60 * 1000,
 	});
 
-	if (isLoading) {
+	const { data: itemClassifications, isLoading: isLoadingItemClassifications } = useQuery({
+		queryKey: ['classifications'],
+		queryFn: () => fetchItemClassifications(s3, user.userId),
+		enabled: !!user?.userId,
+		retry: 1,
+		staleTime: 5 * 60 * 1000,
+	});
+
+	if (!entriesParam && (!entries || isLoadingEntries)) {
 		return <p>Loading...</p>;
 	}
 
-	if (!entries) {
-		return null;
+	if (!itemClassifications || isLoadingItemClassifications) {
+		return <p>Loading...</p>;
 	}
 
-	return <EntryTable entries={entries} />;
+	return (
+		<EntryTable
+			entries={entriesParam || entries!}
+			itemClassifications={itemClassifications}
+		/>
+	);
 };

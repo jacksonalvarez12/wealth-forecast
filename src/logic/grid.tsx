@@ -1,4 +1,4 @@
-import type { Entries, Grid } from '../types/entries';
+import type { Classification, Entries, Grid, ItemClassifications } from '../types/entries';
 import { cleanEntries } from '../utils';
 
 const transpose = (arr: any[][]) => arr[0].map((_, colIndex) => arr.map((row) => row[colIndex]));
@@ -20,7 +20,11 @@ const identifyGridRow = (
 	}
 };
 
-export const convertEntriesToGrid = (entries: Entries): Grid => {
+export const convertEntriesToGrid = (
+	entries: Entries,
+	itemClassifications: ItemClassifications,
+	addBreakdown: boolean
+): Grid => {
 	const cleanedEntries: Entries = cleanEntries(entries);
 
 	const itemNames: Set<string> = new Set<string>();
@@ -88,6 +92,43 @@ export const convertEntriesToGrid = (entries: Entries): Grid => {
 			finalGrid.push(finalRow);
 		}
 	});
+
+	const netWorthRow: (string | number)[] = ['Net Worth'];
+	const debtRow: (string | number)[] = ['Debt'];
+	const illiquidAssetsRow: (string | number)[] = ['Illiquid Assets'];
+	const liquidAssetsRow: (string | number)[] = ['Liquid Assets'];
+	for (const entry of cleanedEntries) {
+		let netWorth: number = 0;
+		let debt: number = 0;
+		let illiquidAssets: number = 0;
+		let liquidAssets: number = 0;
+
+		for (const [key, value] of Object.entries(entry.items)) {
+			netWorth += value;
+
+			const classification: Classification | '' =
+				itemClassifications.find((c) => c.itemName === key)?.classification || '';
+
+			if (classification === 'Debt') {
+				debt += value;
+			} else if (classification === 'Illiquid Asset') {
+				illiquidAssets += value;
+			} else if (classification === 'Liquid Asset') {
+				liquidAssets += value;
+			}
+		}
+		netWorthRow.push(netWorth);
+		debtRow.push(debt);
+		illiquidAssetsRow.push(illiquidAssets);
+		liquidAssetsRow.push(liquidAssets);
+	}
+
+	if (addBreakdown) {
+		debtRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(debtRow);
+		liquidAssetsRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(liquidAssetsRow);
+		illiquidAssetsRow.some((val) => typeof val === 'number' && val !== 0) && finalGrid.unshift(illiquidAssetsRow);
+	}
+	finalGrid.unshift(netWorthRow);
 
 	// Add headers
 	const headers: string[] = [''];

@@ -4,7 +4,7 @@ import { runForecast } from '../api/bedrock';
 import { API_DELAY, fetchEntries, fetchForecastData, updateForecastData } from '../api/s3';
 import { useAppContext } from '../context/hook';
 import type { ForecastData } from '../types/forecast';
-import { EntryTable } from './sheet';
+import { Sheet } from './sheet';
 
 export const Forecast = () => {
 	const { user, s3, bedrockRuntime } = useAppContext();
@@ -166,7 +166,7 @@ export const Forecast = () => {
 						) : (
 							<>
 								<h3>Forecast Sheet</h3>
-								<EntryTable entries={forecastData.entriesWithForecast}></EntryTable>
+								<Sheet entriesParam={forecastData.entriesWithForecast}></Sheet>
 								<h3>Code</h3>
 								<pre>
 									<code className='language-javascript'>{forecastData.code}</code>

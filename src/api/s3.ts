@@ -1,5 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client, type GetObjectCommandOutput } from '@aws-sdk/client-s3';
-import type { Entries } from '../types/entries';
+import type { Entries, ItemClassifications } from '../types/entries';
 import type { ForecastData } from '../types/forecast';
 import { cleanEntries } from '../utils';
 
@@ -41,6 +41,50 @@ export const updateEntries = async (s3: S3Client, userId: string, updatedEntries
 	} catch (err) {
 		alert('Error updating entries');
 		console.error('Error updating entries', err);
+		throw err;
+	}
+};
+
+export const fetchItemClassifications = async (s3: S3Client, userId: string): Promise<ItemClassifications> => {
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
+	try {
+		const res: GetObjectCommandOutput = await s3.send(
+			new GetObjectCommand({ Bucket: 'wealth-forecast', Key: `${userId}/classifications.json` })
+		);
+		const resString: string = (await res.Body?.transformToString()) || '';
+		if (!resString) {
+			return [];
+		}
+		return JSON.parse(resString)?.classifications;
+	} catch (err) {
+		if ((err as any).Code === 'NoSuchKey') {
+			return [];
+		}
+
+		console.error('Error fetching classifications', err);
+		throw err;
+	}
+};
+
+export const updateItemClassifications = async (
+	s3: S3Client,
+	userId: string,
+	updatedItemClassifications: ItemClassifications
+): Promise<void> => {
+	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));
+	try {
+		await s3.send(
+			new PutObjectCommand({
+				Bucket: 'wealth-forecast',
+				Key: `${userId}/classifications.json`,
+				Body: JSON.stringify({ classifications: updatedItemClassifications }),
+				ContentType: 'application/json',
+				CacheControl: 'no-cache', // Gets rid of need to refresh to see changes. Important!
+			})
+		);
+	} catch (err) {
+		alert('Error updating classifications');
+		console.error('Error updating classifications', err);
 		throw err;
 	}
 };
