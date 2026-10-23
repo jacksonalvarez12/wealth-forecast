@@ -3,7 +3,7 @@ import type { Entries } from '../types/entries';
 import type { ForecastData } from '../types/forecast';
 import { cleanEntries } from '../utils';
 
-const API_DELAY = 300;
+export const API_DELAY = 300;
 
 export const fetchEntries = async (s3: S3Client, userId: string): Promise<Entries> => {
 	API_DELAY > 0 && (await new Promise((resolve) => setTimeout(resolve, API_DELAY)));

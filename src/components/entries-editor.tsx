@@ -213,6 +213,7 @@ export const EntriesEditor = () => {
 		queryFn: () => fetchEntries(s3, user.userId),
 		enabled: !!user?.userId,
 		retry: 1,
+		staleTime: 5 * 60 * 1000,
 	});
 	const { mutate, isPending } = useMutation({
 		mutationFn: async ({ entries }: { entries: Entries }) => updateEntries(s3, user.userId, entries),

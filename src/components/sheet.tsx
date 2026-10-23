@@ -41,6 +41,7 @@ export const Sheet = () => {
 		queryFn: () => fetchEntries(s3, user.userId),
 		enabled: !!user?.userId,
 		retry: 1,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	if (isLoading) {

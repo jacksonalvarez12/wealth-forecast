@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { runForecast } from '../api/bedrock';
-import { fetchEntries, fetchForecastData, updateForecastData } from '../api/s3';
+import { API_DELAY, fetchEntries, fetchForecastData, updateForecastData } from '../api/s3';
 import { useAppContext } from '../context/hook';
 import type { ForecastData } from '../types/forecast';
 import { EntryTable } from './sheet';
@@ -16,6 +16,7 @@ export const Forecast = () => {
 		queryFn: () => fetchEntries(s3, user.userId),
 		enabled: !!user?.userId,
 		retry: 1,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const {
@@ -27,6 +28,7 @@ export const Forecast = () => {
 		queryFn: () => fetchForecastData(s3, user.userId),
 		enabled: !!user?.userId,
 		retry: 1,
+		staleTime: 5 * 60 * 1000,
 	});
 
 	const { mutate, isPending } = useMutation({
@@ -45,6 +47,8 @@ export const Forecast = () => {
 	const [prompt, setPrompt] = useState<string>('');
 	const [endDate, setEndDate] = useState<{ month: number; year: number } | null>(null);
 
+	const [forecastRunning, setForecastRunning] = useState<boolean>(false);
+
 	useEffect(() => {
 		if (forecastData) {
 			setPrompt(forecastData.prompt);
@@ -53,9 +57,18 @@ export const Forecast = () => {
 	}, [forecastData]);
 
 	const onSubmit = async () => {
-		if (!prompt || prompt === forecastData?.prompt || !endDate) {
+		if (
+			!prompt ||
+			(prompt === forecastData?.prompt &&
+				endDate?.year === forecastData?.endDate.year &&
+				endDate.month === forecastData?.endDate.month) ||
+			!endDate ||
+			forecastRunning
+		) {
 			return;
 		}
+
+		setForecastRunning(true);
 
 		// Make sure end date is after last entry
 		if (!entries?.length) {
@@ -79,6 +92,8 @@ export const Forecast = () => {
 			code,
 			endDate,
 		});
+
+		setTimeout(() => setForecastRunning(false), 500 + API_DELAY);
 	};
 
 	return (
@@ -133,20 +148,29 @@ export const Forecast = () => {
 						<button
 							type='submit'
 							onClick={onSubmit}
-							disabled={!prompt || prompt === forecastData.prompt || !endDate}
+							disabled={
+								!prompt ||
+								(prompt === forecastData.prompt &&
+									endDate?.year === forecastData.endDate.year &&
+									endDate.month === forecastData.endDate.month) ||
+								!endDate ||
+								forecastRunning
+							}
 						>
 							Run Forecast
 						</button>
 					</div>
 					<div>
-						{isPending ? (
+						{isPending || isRefetching || forecastRunning ? (
 							<p>Updating forecast...</p>
 						) : (
 							<>
 								<h3>Forecast Sheet</h3>
 								<EntryTable entries={forecastData.entriesWithForecast}></EntryTable>
 								<h3>Code</h3>
-								<code>{forecastData.code}</code>
+								<pre>
+									<code className='language-javascript'>{forecastData.code}</code>
+								</pre>
 							</>
 						)}
 					</div>
