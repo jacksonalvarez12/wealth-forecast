@@ -1,7 +1,7 @@
 import { GetObjectCommand, PutObjectCommand, S3Client, type GetObjectCommandOutput } from '@aws-sdk/client-s3';
+import { cleanEntries } from '../logic/utils';
 import type { Entries, ItemClassifications } from '../types/entries';
 import type { ForecastData } from '../types/forecast';
-import { cleanEntries } from '../utils';
 
 export const API_DELAY = 300;
 

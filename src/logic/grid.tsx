@@ -1,5 +1,5 @@
 import type { Classification, Entries, Grid, ItemClassifications } from '../types/entries';
-import { cleanEntries } from '../utils';
+import { cleanEntries } from './utils';
 
 const transpose = (arr: any[][]) => arr[0].map((_, colIndex) => arr.map((row) => row[colIndex]));
 

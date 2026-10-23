@@ -3,8 +3,8 @@ import _ from 'lodash';
 import { useState } from 'react';
 import { fetchEntries, updateEntries } from '../api/s3';
 import { useAppContext } from '../context/hook';
+import { cleanEntries } from '../logic/utils';
 import type { Entries } from '../types/entries';
-import { cleanEntries } from '../utils';
 
 const debugEntries: Entries = [
 	{

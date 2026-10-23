@@ -1,4 +1,4 @@
-import type { Entries } from './types/entries';
+import type { Entries } from '../types/entries';
 
 export const cleanEntries = (entries: Entries): Entries => {
 	return entries
