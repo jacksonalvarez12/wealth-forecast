@@ -77,14 +77,19 @@ export const Forecast = () => {
 
 		setForecastRunning(true);
 
-		const { entriesWithForecast, code } = await runForecast(bedrockRuntime, prompt, entries, endDate);
+		try {
+			const { entriesWithForecast, code } = await runForecast(bedrockRuntime, prompt, entries, endDate);
 
-		setForecastData({
-			prompt,
-			entriesWithForecast,
-			code,
-			endDate,
-		});
+			setForecastData({
+				prompt,
+				entriesWithForecast,
+				code,
+				endDate,
+			});
+		} catch (error) {
+			console.error(error);
+			alert('Error generating forecast');
+		}
 
 		setTimeout(() => setForecastRunning(false), 500 + API_DELAY);
 	};

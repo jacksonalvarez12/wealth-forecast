@@ -46,7 +46,10 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 	return (
 		<div className='sheet'>
 			<div className='toolbar'>
-				<button className='btn btn--secondary btn--sm' onClick={() => setShowBreakdown(!showBreakdown)}>
+				<button
+					className='btn btn--secondary btn--sm'
+					onClick={() => setShowBreakdown(!showBreakdown)}
+				>
 					{showBreakdown ? 'Hide Breakdown' : 'Show Breakdown'}
 				</button>
 			</div>
@@ -61,7 +64,10 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 					</thead>
 					<tbody>
 						{rows.map((row, rowIndex) => (
-							<tr key={rowIndex} className={rowClassName(rowIndex)}>
+							<tr
+								key={rowIndex}
+								className={rowClassName(rowIndex)}
+							>
 								{row.map((item, index) => (
 									<td
 										key={index}
@@ -133,5 +139,10 @@ export const Sheet = (opts: { entriesParam?: Entries }) => {
 		);
 	}
 
-	return <EntryTable entries={entriesParam || entries!} itemClassifications={itemClassifications} />;
+	return (
+		<EntryTable
+			entries={entriesParam || entries!}
+			itemClassifications={itemClassifications}
+		/>
+	);
 };

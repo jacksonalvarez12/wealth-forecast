@@ -41,6 +41,14 @@ const FORECAST_WORKER_SOURCE = `
 				}
 
 				const items = stepFunction(entries);
+
+				Object.keys(items).forEach(key => {
+					if ((typeof items[key] !== 'number' && !items[key]) || isNaN(items[key])) {
+						delete items[key];
+					}
+				});
+
+
 				entries.push({ items, month, year });
 			}
 
