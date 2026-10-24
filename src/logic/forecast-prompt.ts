@@ -75,4 +75,6 @@ Brief addendums:
 
 Make sure that when a debt account is paid off and then the money is directed elsewhere, on the month the debt would be paid off,
 only the portion needed to pay it off goes towards the debt, the remainder would go to whatever all of it would go to next month
+
+Once a loan is paid off, include the last month value of $0, then remove it from the output in the following month.
 `;

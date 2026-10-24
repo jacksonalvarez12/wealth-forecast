@@ -57,14 +57,7 @@ export const Forecast = () => {
 	}, [forecastData]);
 
 	const onSubmit = async () => {
-		if (
-			!prompt ||
-			(prompt === forecastData?.prompt &&
-				endDate?.year === forecastData?.endDate.year &&
-				endDate.month === forecastData?.endDate.month) ||
-			!endDate ||
-			forecastRunning
-		) {
+		if (!prompt || !endDate || forecastRunning) {
 			return;
 		}
 
@@ -164,14 +157,7 @@ export const Forecast = () => {
 								type='submit'
 								className='btn btn--primary'
 								onClick={onSubmit}
-								disabled={
-									!prompt ||
-									(prompt === forecastData.prompt &&
-										endDate?.year === forecastData.endDate.year &&
-										endDate.month === forecastData.endDate.month) ||
-									!endDate ||
-									forecastRunning
-								}
+								disabled={!prompt || !endDate || forecastRunning}
 							>
 								Run Forecast
 							</button>
