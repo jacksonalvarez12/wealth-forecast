@@ -3,7 +3,11 @@ import { useState, type CSSProperties } from 'react';
 import { fetchEntries, fetchItemClassifications } from '../api/s3';
 import { useAppContext } from '../context/hook';
 import { convertEntriesToGrid } from '../logic/grid';
+import { buildAccountHistory, toMonthIndex } from '../logic/history';
+import { cleanEntries } from '../logic/utils';
+import type { AccountHistory } from '../types/chart';
 import type { Entries, Grid, ItemClassifications } from '../types/entries';
+import { AccountChartModal } from './account-chart-modal';
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
 	style: 'currency',
@@ -19,10 +23,11 @@ const negativeStyle = (value: number): CSSProperties | undefined =>
 
 const SUMMARY_LABELS = ['Illiquid Assets', 'Liquid Assets', 'Debt'];
 
-const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassifications }) => {
-	const { entries, itemClassifications } = opts;
+const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassifications; projectedAfter?: number }) => {
+	const { entries, itemClassifications, projectedAfter } = opts;
 
 	const [showBreakdown, setShowBreakdown] = useState(false);
+	const [chartHistory, setChartHistory] = useState<AccountHistory | undefined>(undefined);
 
 	const grid: Grid = convertEntriesToGrid(entries, itemClassifications, showBreakdown);
 
@@ -41,6 +46,20 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 			return `table__row--summary${rowIndex === summaryRowCount - 1 ? ' table__row--summary-last' : ''}`;
 		}
 		return undefined;
+	};
+
+	const openChart = (rowIndex: number, colIndex: number) => {
+		const history = buildAccountHistory({
+			grid,
+			entries,
+			bodyRowIndex: rowIndex,
+			colIndex,
+			isSummaryRow: rowIndex < summaryRowCount,
+			projectedAfter,
+		});
+		if (history) {
+			setChartHistory(history);
+		}
 	};
 
 	return (
@@ -81,6 +100,18 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 													: undefined
 										}
 										style={typeof item === 'number' ? negativeStyle(item) : undefined}
+										{...(item !== '' && {
+											tabIndex: 0,
+											'data-clickable': true,
+											title: 'View history',
+											onClick: () => openChart(rowIndex, index),
+											onKeyDown: (e: React.KeyboardEvent) => {
+												if (e.key === 'Enter' || e.key === ' ') {
+													e.preventDefault();
+													openChart(rowIndex, index);
+												}
+											},
+										})}
 									>
 										{typeof item === 'number' ? (
 											currencyFormatter.format(item)
@@ -96,6 +127,12 @@ const EntryTable = (opts: { entries: Entries; itemClassifications: ItemClassific
 					</tbody>
 				</table>
 			</div>
+			{chartHistory && (
+				<AccountChartModal
+					history={chartHistory}
+					onClose={() => setChartHistory(undefined)}
+				/>
+			)}
 		</div>
 	);
 };
@@ -139,10 +176,14 @@ export const Sheet = (opts: { entriesParam?: Entries }) => {
 		);
 	}
 
+	// On a forecast sheet, months after the latest real entry are projections
+	const latestActual = entriesParam && entries?.length ? cleanEntries([...entries]).at(-1) : undefined;
+
 	return (
 		<EntryTable
 			entries={entriesParam || entries!}
 			itemClassifications={itemClassifications}
+			projectedAfter={latestActual ? toMonthIndex(latestActual) : undefined}
 		/>
 	);
 };
